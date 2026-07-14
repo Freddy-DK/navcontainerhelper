@@ -2348,7 +2348,7 @@ Write-Host -ForegroundColor Yellow @'
         }
     }
 
-    if ($enableAppSourceCop -and $app) {
+    if ($enableAppSourceCop -and ($app -or $enableCodeAnalyzersOnTestApps)) {
         $appSourceCopJson = @{}
         $saveit = $false
 
