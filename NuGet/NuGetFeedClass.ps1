@@ -105,6 +105,7 @@ class NuGetFeed {
             }
         }
 
+        $matching = @()
         if ($useCache -and $hasCache) { 
             Write-Host "Search package using cache"
             $matching = $this.searchResultsCache[$packageName].matching
@@ -133,7 +134,6 @@ class NuGetFeed {
                 }
             }
             $cacheKey = "GitHubPackages:$($this.orgType[$organization])/$organization"
-            $matching = @()
             if ($this.searchResultsCacheRetentionPeriod -gt 0 -and $this.searchResultsCache.ContainsKey($cacheKey)) {
                 if ($this.searchResultsCache[$cacheKey].timestamp.AddSeconds($this.searchResultsCacheRetentionPeriod) -lt (Get-Date)) {
                     Write-Host "Cache expired, removing cache $cacheKey"
@@ -179,12 +179,12 @@ class NuGetFeed {
                 $prev = $global:ProgressPreference; $global:ProgressPreference = "SilentlyContinue"
                 $searchResult = Invoke-RestMethod -UseBasicParsing -Method GET -Headers ($this.GetHeaders()) -Uri $queryUrl
                 $global:ProgressPreference = $prev
+                # Check that the found pattern matches the package name and the trusted patterns
+                $matching = @($searchResult.data | Where-Object { $_.id -like "*$($packageName)*" -and $this.IsTrusted($_.id) } | Sort-Object { $_.id.replace('.symbols','') } | ForEach-Object { @{ "id" = $_.id; "versions" = @($_.versions.version) } } )
             }
             catch {
                 throw (GetExtendedErrorMessage $_)
             }
-            # Check that the found pattern matches the package name and the trusted patterns
-            $matching = @($searchResult.data | Where-Object { $_.id -like "*$($packageName)*" -and $this.IsTrusted($_.id) } | Sort-Object { $_.id.replace('.symbols','') } | ForEach-Object { @{ "id" = $_.id; "versions" = @($_.versions.version) } } )
         }
         $exact = $matching | Where-Object { $_.id -eq $packageName -or $_.id -eq "$packageName.symbols" }
         if ($exact) {
