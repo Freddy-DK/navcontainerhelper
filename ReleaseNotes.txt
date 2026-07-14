@@ -5,6 +5,7 @@ Run-AlPipeline: Fix AS0054 by creating AppSourceCop.json (with mandatory affixes
 New-BcCompilerFolder: Add platformArtifactUrl parameter to allow using a different platform than the one related to artifactUrl (like New-BcContainer)
 Add retry with exponential backoff in DockerDo for transient MCR pull failures caused by Azure Front Door CDN/WAF blocks (delays: 5s, 15s, 30s, 60s, 120s)
 Add support for framework-dependent AL Language VSIX (flat bin/ layout without platform-specific subdirectories)
+Add Tenant to Export-NAVServerLicenseInformation to cover for changes in OnPrem managenment commands
 
 6.1.14
 Fix System.IO.Pipelines assembly load failure in PS7 WinRM sessions on containers with .NET 10
