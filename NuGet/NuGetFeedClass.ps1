@@ -48,10 +48,10 @@ class NuGetFeed {
                 Write-Host "Capabilities of NuGet server $($this.url) are not supported"
                 $capabilities.resources | ForEach-Object { Write-Host "- $($_.'@type')"; Write-Host "-> $($_.'@id')" }
             }
-            Write-Verbose "Capabilities of NuGet server $($this.url) are:"
-            Write-Verbose "- SearchQueryService=$($this.searchQueryServiceUrl)"
-            Write-Verbose "- PackagePublish=$($this.packagePublishUrl)"
-            Write-Verbose "- PackageBaseAddress=$($this.packageBaseAddressUrl)"
+            Write-Host "Capabilities of NuGet server $($this.url) are:"
+            Write-Host "- SearchQueryService=$($this.searchQueryServiceUrl)"
+            Write-Host "- PackagePublish=$($this.packagePublishUrl)"
+            Write-Host "- PackageBaseAddress=$($this.packageBaseAddressUrl)"
         }
         catch {
             throw (GetExtendedErrorMessage $_)
