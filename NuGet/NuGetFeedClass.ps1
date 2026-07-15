@@ -71,14 +71,27 @@ class NuGetFeed {
         Write-Host $message
     }
 
+    [bool] IsGitHubFeed() {
+        # GitHub Packages (github.com) and GitHub Enterprise Cloud with data residency (ghe.com)
+        return ($this.url -like 'https://nuget.pkg.github.com/*' -or $this.url -like 'https://nuget.*.ghe.com/*')
+    }
+
     [hashtable] GetHeaders() {
         $headers = @{
             "Content-Type" = "application/json; charset=utf-8"
         }
         # nuget.org only support anonymous access
         if ($this.token -and $this.url -notlike 'https://api.nuget.org/*') {
-            $headers += @{
-                "Authorization" = "Basic $([Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("user:$($this.token)")))"
+            if ($this.IsGitHubFeed()) {
+                # GitHub Packages expects a Bearer token
+                $headers += @{
+                    "Authorization" = "Bearer $($this.token)"
+                }
+            }
+            else {
+                $headers += @{
+                    "Authorization" = "Basic $([Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("user:$($this.token)")))"
+                }
             }
         }
         return $headers
