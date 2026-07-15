@@ -23,34 +23,8 @@ Function Push-BcNuGetPackage {
         [string] $bcNuGetPackage
     )
 
-    # Publish the package using the official 'dotnet nuget push' client.
-    # Credentials are written to an isolated temporary NuGet config file (removed afterwards) so that
-    # the token is never passed on the command line - otherwise it could leak into error/CI logs.
-    $sourceName = 'BcContainerHelperPushSource'
-    $tmpConfigFile = Join-Path ([System.IO.Path]::GetTempPath()) "$([GUID]::NewGuid().ToString()).config"
-    $escapedUrl = [System.Security.SecurityElement]::Escape($nuGetServerUrl)
-    $escapedToken = [System.Security.SecurityElement]::Escape($nuGetToken)
-    @"
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-  <packageSources>
-    <add key="$sourceName" value="$escapedUrl" />
-  </packageSources>
-  <packageSourceCredentials>
-    <$sourceName>
-      <add key="Username" value="BcContainerHelper" />
-      <add key="ClearTextPassword" value="$escapedToken" />
-    </$sourceName>
-  </packageSourceCredentials>
-</configuration>
-"@ | Set-Content -Path $tmpConfigFile -Encoding UTF8
+    $nuGetFeed = [NuGetFeed]::Create($nuGetServerUrl, $nuGetToken, @(), @(), $bcContainerHelperConfig.NuGetSearchResultsCacheRetentionPeriod, $bcContainerHelperConfig.BcNuGetCacheFolder)
 
-    try {
-        $arguments = "nuget push ""$bcNuGetPackage"" --source ""$sourceName"" --configfile ""$tmpConfigFile"" --skip-duplicate"
-        cmddo -command 'dotnet' -arguments $arguments -messageIfCmdNotFound "dotnet not found. Please install it from https://dotnet.microsoft.com/download"
-    }
-    finally {
-        Remove-Item -Path $tmpConfigFile -Force -ErrorAction SilentlyContinue
-    }
+    $nuGetFeed.PushPackage($bcNuGetPackage)
 }
 Export-ModuleMember -Function Push-BcNuGetPackage
