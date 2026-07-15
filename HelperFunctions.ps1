@@ -524,24 +524,8 @@ function GetExtendedErrorMessage {
 
     try {
         if ($errorRecord.ErrorDetails) {
-            try {
-                $errorDetails = $errorRecord.ErrorDetails | ConvertFrom-Json
-                # OAuth style error responses
-                if ($errorDetails.error -or $errorDetails.error_description) {
-                    $message += " $($errorDetails.error)`r`n$($errorDetails.error_description)"
-                }
-                # GitHub/NuGet style error responses ({ "message": "...", "errors": [...] })
-                if ($errorDetails.message) {
-                    $message += "`r`n$($errorDetails.message)"
-                }
-                if ($errorDetails.errors) {
-                    $message += "`r`n$(($errorDetails.errors | ForEach-Object { if ($_ -is [string]) { $_ } else { $_.message } }) -join "`r`n")"
-                }
-            }
-            catch {
-                # Response body wasn't JSON - include the raw text so the underlying reason isn't lost
-                $message += "`r`n$($errorRecord.ErrorDetails)"
-            }
+            $errorDetails = $errorRecord.ErrorDetails | ConvertFrom-Json
+            $message += " $($errorDetails.error)`r`n$($errorDetails.error_description)"
         }
     }
     catch {}
